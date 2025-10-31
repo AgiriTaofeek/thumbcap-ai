@@ -1,0 +1,97 @@
+## Relevant Files
+
+- `infra/iam-roles.md` - Minimal IAM roles and mapping per service account.
+- `infra/gcs-buckets.md` - Bucket naming, structure, and lifecycle policies (30-day retention).
+- `infra/env.example.json` - Project config: `projectId`, `region`, bucket names, Pub/Sub topics.
+- `workflows/thumbcap.yaml` - Cloud Workflows orchestration definition and service accounts.
+- `services/common/firestore.ts` - Firestore Admin initialization shared by backend services.
+- `services/common/types.ts` - Shared types: videos, thumbnails, captions, workflow runs.
+- `scripts/gcloud-setup.sh` - Script to bootstrap APIs, buckets, Pub/Sub, and IAM.
+- `README.md` - Setup instructions for hackathon judges and contributors.
+
+### Notes
+
+- Use `us-central1` or `us-east1` as the default region (low latency, broad support).
+- Enable only required APIs to reduce cost and complexity.
+- Adopt uniform bucket-level access on GCS with least-privilege IAM.
+- Configure Firestore in Native mode.
+- Use Secret Manager for YouTube OAuth client credentials.
+- Budget alerts are often set via the Cloud Console; add instructions in `README.md`.
+
+## Tasks
+
+- [ ] 1.0 Cloud Foundation & IAM
+  - [ ] 1.1 Create/Select GCP Project and Set Defaults
+    - Define `PROJECT_ID`, `BILLING_ACCOUNT_ID`, and `REGION` (e.g., `us-central1`).
+    - Link billing if needed; set active project and default region for CLI.
+  - [ ] 1.2 Enable Required APIs
+    - Service Usage: `serviceusage.googleapis.com`
+    - Cloud Storage: `storage.googleapis.com`
+    - Pub/Sub: `pubsub.googleapis.com`
+    - Cloud Workflows: `workflows.googleapis.com`
+    - Cloud Run: `run.googleapis.com`
+    - Firestore: `firestore.googleapis.com`
+    - Secret Manager: `secretmanager.googleapis.com`
+    - Cloud Vision: `vision.googleapis.com`
+    - Speech-to-Text: `speech.googleapis.com`
+    - Vertex AI: `aiplatform.googleapis.com`
+    - Cloud Translation: `translate.googleapis.com`
+    - Firebase Hosting (optional for MVP): `firebase.googleapis.com`
+  - [ ] 1.3 Initialize Firestore (Native Mode)
+    - Create Firestore database in Native mode (region near `REGION`).
+    - Add TTL policy plan (30-day retention) for transcripts and generated assets.
+  - [ ] 1.4 Create GCS Buckets (Uniform Access + Lifecycle)
+    - `thumbcap-raw` — raw videos
+    - `thumbcap-frames` — extracted frames
+    - `thumbcap-thumbnails` — generated thumbnail variants
+    - `thumbcap-final` — finalized PNGs for publishing
+    - Enable uniform bucket-level access; add lifecycle rule to delete objects after 30 days.
+  - [ ] 1.5 Create Pub/Sub Topics and Subscriptions
+    - Topic: `video-uploads` (trigger for Workflows).
+    - (Optional) DLQ Topic: `video-uploads-dlq`.
+    - Create a pull subscription for internal workers if needed.
+  - [ ] 1.6 Create Service Accounts
+    - `sa-workflows@PROJECT_ID.iam.gserviceaccount.com` — runs Cloud Workflows.
+    - `sa-frame-extractor@PROJECT_ID.iam.gserviceaccount.com` — FFmpeg frames (Cloud Run).
+    - `sa-vision@PROJECT_ID.iam.gserviceaccount.com` — Vision API scoring.
+    - `sa-imagen@PROJECT_ID.iam.gserviceaccount.com` — Vertex Imagen generation.
+    - `sa-caption@PROJECT_ID.iam.gserviceaccount.com` — STT + Gemini captions.
+    - `sa-ctr@PROJECT_ID.iam.gserviceaccount.com` — CTR heuristic + Vertex Prediction.
+    - `sa-editor@PROJECT_ID.iam.gserviceaccount.com` — Save edited PNG to GCS.
+    - `sa-publisher@PROJECT_ID.iam.gserviceaccount.com` — YouTube OAuth + publish/update.
+  - [ ] 1.7 Assign Least-Privilege IAM Roles
+    - Common baseline: `roles/logging.logWriter`, `roles/monitoring.metricWriter`, `roles/secretmanager.secretAccessor`
+    - Storage (per service): `roles/storage.objectAdmin` (write) or `roles/storage.objectViewer` (read)
+    - Pub/Sub: `roles/pubsub.publisher` (emit), `roles/pubsub.subscriber` (consume)
+    - Workflows: `roles/workflows.invoker` (invocation), `roles/workflows.viewer` (status)
+    - Cloud Run: `roles/run.invoker` (cross-service calls)
+    - Firestore: `roles/firestore.user` (read/write documents)
+    - Vision API: `roles/serviceusage.serviceUsageConsumer` (API access; Vision honors enablement)
+    - Speech-to-Text: same as above (enablement + app auth)
+    - Vertex AI: `roles/aiplatform.user` (predict + generative calls)
+    - Translation: `roles/cloudtranslate.user`
+    - SA user binding: `roles/iam.serviceAccountUser` for deployers only (CI or developer SA)
+  - [ ] 1.8 Configure Workflows Runtime Identity
+    - Bind `sa-workflows` to the workflow execution.
+    - Grant `sa-workflows` `roles/run.invoker`, `roles/pubsub.publisher`, `roles/firestore.user`, and read on buckets used in orchestration.
+  - [ ] 1.9 Secret Manager for OAuth & API Keys
+    - Store YouTube OAuth client ID/secret in Secret Manager.
+    - Store any optional API keys (if needed) and bind `roles/secretmanager.secretAccessor` to relevant SAs.
+  - [ ] 1.10 Environment Configuration
+    - Create `infra/env.example.json` with keys: `projectId`, `region`, bucket names, topic names, and endpoint base URLs.
+    - Document `.env` variables for local dev and Cloud Run deployments.
+  - [ ] 1.11 Budget & Cost Guardrails (Hackathon)
+    - Set daily budget (e.g., $50) and alerts via Cloud Console Billing.
+    - Define per-video cap: max 5 Imagen generations, throttle on Vertex calls beyond threshold.
+    - Document cost controls in `README.md`.
+  - [ ] 1.12 Observability Setup
+    - Ensure log correlation across Cloud Run and Workflows (labels: `videoId`, `runId`).
+    - Define basic metrics (e.g., time-to-first-result, generation errors).
+    - Add a quick-start dashboard checklist in `README.md`.
+  - [ ] 1.13 Firebase Hosting (Optional MVP)
+    - Initialize Firebase Hosting bound to the same `PROJECT_ID`.
+    - Plan route mapping for upload → review → edit → publish.
+  - [ ] 1.14 Validation Checklist
+    - Verify APIs enabled and Firestore initialized.
+    - Upload a sample file to `thumbcap-raw` and confirm Pub/Sub trigger to Workflows.
+    - Confirm SA permissions by invoking a sample Cloud Run endpoint with `sa-workflows`.
