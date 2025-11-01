@@ -11,7 +11,7 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-xl">ThumbCap AI</h1>
-              <p className="text-sm">Powered by Google Cloud</p>
+              <p className="text-sm text-gray-500">Powered by Google Cloud</p>
             </div>
           </div>
 

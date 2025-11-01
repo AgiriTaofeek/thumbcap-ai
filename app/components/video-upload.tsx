@@ -69,7 +69,7 @@ export function VideoUpload({ onUpload }: VideoUploadProps) {
       </div>
 
       <Tabs defaultValue="file" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="w-full mb-6">
           <TabsTrigger value="file" className="gap-2">
             <Upload className="w-4 h-4" />
             Upload File

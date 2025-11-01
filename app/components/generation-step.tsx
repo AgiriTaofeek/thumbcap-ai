@@ -127,7 +127,7 @@ export function GenerationStep({
       <Card className="p-8 mb-6">
         <div className="space-y-8">
           {/* Video Preview */}
-          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-4 p-4 rounded-lg">
             <div className="w-32 h-20 bg-gradient-to-br from-purple-400 to-blue-400 rounded flex items-center justify-center">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
@@ -167,7 +167,7 @@ export function GenerationStep({
           {isGenerating && (
             <div className="space-y-4">
               <div className="text-center py-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                <div className="w-20 h-20  rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                   <Zap className="w-10 h-10 text-white" />
                 </div>
                 <p className="text-sm text-gray-600 mb-4">{currentTask}</p>
@@ -190,15 +190,19 @@ export function GenerationStep({
       </Card>
 
       {/* Tech Stack Info */}
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
+      <div className="rounded-lg p-6">
         <h4 className="text-sm font-medium mb-3">
           Powered by Google Cloud Services:
         </h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-          <div className="bg-white p-3 rounded">Vision AI</div>
-          <div className="bg-white p-3 rounded">Speech-to-Text</div>
-          <div className="bg-white p-3 rounded">Vertex AI</div>
-          <div className="bg-white p-3 rounded">Cloud Storage</div>
+          <div className=" p-3 rounded border border-gray-200">Vision AI</div>
+          <div className=" p-3 rounded border border-gray-200">
+            Speech-to-Text
+          </div>
+          <div className=" p-3 rounded border border-gray-200">Vertex AI</div>
+          <div className=" p-3 rounded border border-gray-200">
+            Cloud Storage
+          </div>
         </div>
       </div>
     </div>
