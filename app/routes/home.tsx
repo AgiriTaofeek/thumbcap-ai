@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Route } from "./+types/home";
 import { Header } from "~/components/header";
-import { Main } from "~/components/main";
+import { Wrapper } from "~/components/wrapper";
 import { ProgressStepper } from "~/components/progress-stepper";
 import { Content } from "~/components/content";
 import { VideoUpload } from "~/components/video-upload";
@@ -41,7 +41,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <Header />
-      <Main>
+      <Wrapper>
         <ProgressStepper currentStep={currentStep} />
         <Content>
           {currentStep === 1 && <VideoUpload onUpload={handleVideoUpload} />}
@@ -61,7 +61,7 @@ export default function Home() {
             />
           )}
         </Content>
-      </Main>
+      </Wrapper>
     </div>
   );
 }
